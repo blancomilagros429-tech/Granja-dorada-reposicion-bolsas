@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_Granja" targetNamespace="http://bpmn.io/schema/bpmn">
+<bpmn:collaboration id="Collab_Granja">
+<bpmn:participant id="Part_Granja" name="Granja Dorada" processRef="Proc_Granja"/>
+<bpmn:participant id="Part_Prov" name="Proveedor de bolsas" processRef="Proc_Prov"/>
+<bpmn:messageFlow id="MF_Alerta" sourceRef="Task_EnviarAlerta" targetRef="Start_Alerta"/>
+<bpmn:messageFlow id="MF_Pedido" sourceRef="Task_EnviarProveedor" targetRef="Start_Prov"/>
+<bpmn:messageFlow id="MF_Entrega" sourceRef="Task_EntregarLote" targetRef="Task_RecibirLote"/>
+</bpmn:collaboration>
+<bpmn:process id="Proc_Granja" name="Granja Dorada" isExecutable="false">
+<bpmn:laneSet>
+<bpmn:lane id="L1" name="Envasado / Depósito"><bpmn:flowNodeRef>Start1</bpmn:flowNodeRef><bpmn:flowNodeRef>T1</bpmn:flowNodeRef><bpmn:flowNodeRef>T5</bpmn:flowNodeRef><bpmn:flowNodeRef>T6</bpmn:flowNodeRef><bpmn:flowNodeRef>End2</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L2" name="Sistema de stock"><bpmn:flowNodeRef>T2</bpmn:flowNodeRef><bpmn:flowNodeRef>T3</bpmn:flowNodeRef><bpmn:flowNodeRef>G1</bpmn:flowNodeRef><bpmn:flowNodeRef>End1</bpmn:flowNodeRef><bpmn:flowNodeRef>T4</bpmn:flowNodeRef><bpmn:flowNodeRef>Task_EnviarAlerta</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="L3" name="Compras"><bpmn:flowNodeRef>Start_Alerta</bpmn:flowNodeRef><bpmn:flowNodeRef>T7</bpmn:flowNodeRef><bpmn:flowNodeRef>T8</bpmn:flowNodeRef><bpmn:flowNodeRef>G2</bpmn:flowNodeRef><bpmn:flowNodeRef>Task_EnviarProveedor</bpmn:flowNodeRef><bpmn:flowNodeRef>G3</bpmn:flowNodeRef><bpmn:flowNodeRef>T9</bpmn:flowNodeRef></bpmn:lane>
+</bpmn:laneSet>
+<bpmn:startEvent id="Start1" name="Se envasa un lote"><bpmn:outgoing>F1</bpmn:outgoing></bpmn:startEvent>
+<bpmn:task id="T1" name="Retirar bolsas del stock y registrar consumo"><bpmn:incoming>F1</bpmn:incoming><bpmn:outgoing>F2</bpmn:outgoing></bpmn:task>
+<bpmn:task id="T2" name="Descontar bolsas utilizadas del stock"><bpmn:incoming>F2</bpmn:incoming><bpmn:outgoing>F3</bpmn:outgoing></bpmn:task>
+<bpmn:task id="T3" name="Calcular stock actual"><bpmn:incoming>F3</bpmn:incoming><bpmn:outgoing>F4</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="G1" name="¿Stock = minimo?"><bpmn:incoming>F4</bpmn:incoming><bpmn:outgoing>F5</bpmn:outgoing><bpmn:outgoing>F6</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:endEvent id="End1" name="Stock suficiente"><bpmn:incoming>F5</bpmn:incoming></bpmn:endEvent>
+<bpmn:task id="T4" name="Generar alerta con la cantidad de bolsas restantes"><bpmn:incoming>F6</bpmn:incoming><bpmn:outgoing>F7</bpmn:outgoing></bpmn:task>
+<bpmn:task id="Task_EnviarAlerta" name="Enviar alerta a Compras"><bpmn:incoming>F7</bpmn:incoming><bpmn:outgoing>F8</bpmn:outgoing></bpmn:task>
+<bpmn:startEvent id="Start_Alerta" name="Recibir alerta de stock minimo"><bpmn:incoming>F8</bpmn:incoming><bpmn:outgoing>F9</bpmn:outgoing><bpmn:messageEventDefinition/></bpmn:startEvent>
+<bpmn:task id="T7" name="Definir cantidad a pedir"><bpmn:incoming>F9</bpmn:incoming><bpmn:outgoing>F10</bpmn:outgoing></bpmn:task>
+<bpmn:task id="T8" name="Emitir pedido de compra"><bpmn:incoming>F10</bpmn:incoming><bpmn:outgoing>F11</bpmn:outgoing></bpmn:task>
+<bpmn:exclusiveGateway id="G2" name="¿Pedido aprobado?"><bpmn:incoming>F11</bpmn:incoming><bpmn:outgoing>F12</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:task id="Task_EnviarProveedor" name="Enviar pedido al proveedor"><bpmn:incoming>F12</bpmn:incoming><bpmn:outgoing>F13</bpmn:outgoing></bpmn:task>
+<bpmn:intermediateCatchEvent id="G3" name="¿Llega el pedido en X dias?"><bpmn:incoming>F13</bpmn:incoming><bpmn:outgoing>F14</bpmn:outgoing><bpmn:outgoing>F15</bpmn:outgoing></bpmn:intermediateCatchEvent>
+<bpmn:task id="T9" name="Enviar reclamo al proveedor"><bpmn:incoming>F15</bpmn:incoming></bpmn:task>
+<bpmn:task id="T5" name="Recibir y controlar el lote de bolsas"><bpmn:incoming>F14</bpmn:incoming><bpmn:outgoing>F16</bpmn:outgoing></bpmn:task>
+<bpmn:task id="T6" name="Registrar ingreso de bolsas y actualizar stock"><bpmn:incoming>F16</bpmn:incoming><bpmn:outgoing>F17</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="End2" name="Stock repuesto"><bpmn:incoming>F17</bpmn:incoming></bpmn:endEvent>
+<bpmn:sequenceFlow id="F1" sourceRef="Start1" targetRef="T1"/><bpmn:sequenceFlow id="F2" sourceRef="T1" targetRef="T2"/><bpmn:sequenceFlow id="F3" sourceRef="T2" targetRef="T3"/><bpmn:sequenceFlow id="F4" sourceRef="T3" targetRef="G1"/><bpmn:sequenceFlow id="F5" name="No" sourceRef="G1" targetRef="End1"/><bpmn:sequenceFlow id="F6" name="Si" sourceRef="G1" targetRef="T4"/><bpmn:sequenceFlow id="F7" sourceRef="T4" targetRef="Task_EnviarAlerta"/><bpmn:sequenceFlow id="F8" sourceRef="Task_EnviarAlerta" targetRef="Start_Alerta"/><bpmn:sequenceFlow id="F9" sourceRef="Start_Alerta" targetRef="T7"/><bpmn:sequenceFlow id="F10" sourceRef="T7" targetRef="T8"/><bpmn:sequenceFlow id="F11" sourceRef="T8" targetRef="G2"/><bpmn:sequenceFlow id="F12" name="Si" sourceRef="G2" targetRef="Task_EnviarProveedor"/><bpmn:sequenceFlow id="F13" sourceRef="Task_EnviarProveedor" targetRef="G3"/><bpmn:sequenceFlow id="F14" name="Si" sourceRef="G3" targetRef="T5"/><bpmn:sequenceFlow id="F15" name="No" sourceRef="G3" targetRef="T9"/><bpmn:sequenceFlow id="F16" sourceRef="T5" targetRef="T6"/><bpmn:sequenceFlow id="F17" sourceRef="T6" targetRef="End2"/>
+</bpmn:process>
+<bpmn:process id="Proc_Prov" name="Proveedor de bolsas" isExecutable="false">
+<bpmn:startEvent id="Start_Prov" name="Recibir pedido de compra"><bpmn:outgoing>FP1</bpmn:outgoing><bpmn:messageEventDefinition/></bpmn:startEvent>
+<bpmn:task id="Task_Prep" name="Preparar lote de bolsas"><bpmn:incoming>FP1</bpmn:incoming><bpmn:outgoing>FP2</bpmn:outgoing></bpmn:task>
+<bpmn:task id="Task_EntregarLote" name="Entregar lote de bolsas"><bpmn:incoming>FP2</bpmn:incoming><bpmn:outgoing>FP3</bpmn:outgoing></bpmn:task>
+<bpmn:endEvent id="End_Prov" name="Enviar lote"><bpmn:incoming>FP3</bpmn:incoming><bpmn:messageEventDefinition/></bpmn:endEvent>
+<bpmn:sequenceFlow id="FP1" sourceRef="Start_Prov" targetRef="Task_Prep"/><bpmn:sequenceFlow id="FP2" sourceRef="Task_Prep" targetRef="Task_EntregarLote"/><bpmn:sequenceFlow id="FP3" sourceRef="Task_EntregarLote" targetRef="End_Prov"/>
+</bpmn:process>
+</bpmn:definitions>
